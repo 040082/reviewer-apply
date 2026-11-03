@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2027학년도 교육운영계획서 검토위원 공모</title>
+<style>
+ body{font-family:'Malgun Gothic',sans-serif;max-width:640px;margin:20px auto;padding:0 16px;color:#222}
+ h1{font-size:20px;color:#1a4b8c} label{display:block;margin-top:14px;font-weight:bold}
+ input[type=text],input[type=email],input[type=tel],select,textarea{width:100%;padding:9px;box-sizing:border-box;margin-top:4px;border:1px solid #bbb;border-radius:6px}
+ .chk{display:inline-block;width:32%;font-weight:normal;margin-top:6px}
+ .chk input{margin-right:4px}
+ button{margin-top:20px;width:100%;padding:13px;background:#1a4b8c;color:#fff;border:0;border-radius:6px;font-size:16px}
+ button:disabled{background:#999} #msg{margin-top:14px;font-weight:bold}
+ .box{background:#f3f6fb;padding:10px;border-radius:6px;font-size:13px;font-weight:normal}
+</style></head><body>
+<h1>2027학년도 교육운영계획서<br>검토위원 공모 신청서</h1>
+<p class="box">■ 신청 마감: 2026. 00. 00.(요일) 18:00<br>■ 검토 방식: 비대면 온라인 검토, 의견서 제출<br>■ 문의: 교과과정개편 담당 (연락처 입력)</p>
+
+<form id="f">
+ <label>성명 *<input type="text" name="name" required></label>
+ <label>소속 캠퍼스 *<select name="campus" id="campus" required><option value="">선택</option></select></label>
+ <label>소속 학과 *<input type="text" name="dept" required></label>
+ <label>직급 *<select name="rank" required><option value="">선택</option><option>교수</option><option>부교수</option><option>조교수</option><option>기타</option></select></label>
+ <label>이메일 *<input type="email" name="email" required></label>
+ <label>연락처 *<input type="tel" name="phone" placeholder="010-0000-0000" required></label>
+ <label>검토 희망 분야 * (최대 3개)</label><div id="fields"></div>
+ <label>담당 교과 및 산업체 경력 (선택)<textarea name="career" rows="3"></textarea></label>
+ <label>기타 의견 (선택)<textarea name="etc" rows="2"></textarea></label>
+ <label class="box"><input type="checkbox" id="agree1"> 비대면 온라인으로 검토하고 기한 내 의견서를 제출하겠습니다. *</label>
+ <label class="box"><input type="checkbox" id="agree2"> 개인정보 수집·이용에 동의합니다. *<br>
+ (수집 항목: 성명, 소속, 이메일, 연락처 / 목적: 검토위원 선정 및 업무 안내 / 보유 기간: 사업 종료 후 파기)</label>
+ <button id="btn" type="submit">신청하기</button>
+ <div id="msg"></div>
+</form>
+
+<script>
+var API_URL = "여기에_웹앱_URL_붙여넣기";
+var campuses = [];
+for (var i=1;i<=38;i++) campuses.push("캠퍼스"+(i<10?"0"+i:i)); // 실제 캠퍼스명으로 교체
+var fields = ["기계","기계설계","금형","전자","전기","정보통신IT","자동화","자동차","신소재","산업설비","미디어","디자인","바이오","섬유패션","개별특성화","교양","반도체","로봇","항공"];
+
+campuses.forEach(function(c){document.getElementById("campus").add(new Option(c,c));});
+fields.forEach(function(x){
+  document.getElementById("fields").insertAdjacentHTML("beforeend",
+   '<label class="chk"><input type="checkbox" name="fields" value="'+x+'">'+x+'</label>');
+});
+
+document.getElementById("f").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  var msg = document.getElementById("msg"), btn = document.getElementById("btn");
+  var sel = Array.prototype.map.call(document.querySelectorAll("input[name=fields]:checked"), function(e){return e.value;});
+  if (sel.length<1 || sel.length>3){msg.textContent="검토 희망 분야를 1~3개 선택하세요.";return;}
+  if (!document.getElementById("agree1").checked || !document.getElementById("agree2").checked){
+    msg.textContent="확인 사항과 개인정보 동의에 체크해 주세요.";return;}
+  var fd = new FormData(ev.target);
+  var data = {name:fd.get("name"),campus:fd.get("campus"),dept:fd.get("dept"),rank:fd.get("rank"),
+    email:fd.get("email").trim().toLowerCase(),phone:fd.get("phone"),fields:sel,
+    career:fd.get("career"),etc:fd.get("etc")};
+  btn.disabled=true; msg.textContent="제출 중입니다...";
+  fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(data)})
+   .then(function(r){return r.json();})
+   .then(function(r){
+     if(r.ok){msg.style.color="green";msg.textContent="신청이 접수되었습니다. 감사합니다.";ev.target.reset();}
+     else{msg.style.color="red";msg.textContent=r.msg||"오류가 발생했습니다.";btn.disabled=false;}
+   })
+   .catch(function(){msg.style.color="red";msg.textContent="전송 실패. 잠시 후 다시 시도하세요.";btn.disabled=false;});
+});
+</script></body></html>
